@@ -31,51 +31,76 @@ const jsonFiles = fs.readdirSync(folderPath).filter(file => file.startsWith("Dat
 
 // 파일 이름에 따라 조건을 설정하는 함수
 function getFilterCondition(fileName) {
-    if (fileName.includes("맛집")) {
-        return item => item.분류.includes("한식");    // DataSheet_2 조건
-    }
-    else if (fileName.includes("쇼핑")) {
-        return item => item.분류.includes("관광");    // DataSheet_3 조건
-    }
-    else if (fileName.includes("숙소")) {
-        return item => item.사업장명.includes("호텔");
-    }
-    else {
-        return item => true;                        // 기본 조건 (모든 행 포함)
-    }
+  if (fileName.includes("맛집")) {
+    return item => item.분류.includes("한식");    // DataSheet_2 조건
+  }
+  else if (fileName.includes("쇼핑")) {
+    return item => item.분류.includes("관광");    // DataSheet_3 조건
+  }
+  else if (fileName.includes("숙소")) {
+    return item => item.사업장명.includes("호텔");
+  }
+  else {
+    return item => true;                        // 기본 조건 (모든 행 포함)
+  }
 }
 
 // 각 JSON 파일을 읽고 파일별 조건에 맞는 행만 출력
 jsonFiles.forEach(file => {
-    const filePath = path.join(folderPath, file);
-    const sheetName = file.replace("DataSheet_", "").replace(".json", "");
+  const filePath = path.join(folderPath, file);
+  const sheetName = file.replace("DataSheet_", "").replace(".json", "");
 
-    // 파일 읽기 및 JSON 파싱
-    const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  // 파일 읽기 및 JSON 파싱
+  const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
 
-    const filteredData = data.filter(item => item.주소.includes("강동구"));
+  // 지역 선택
+  const filteredData = data.filter(item => item.주소.includes("강남구"));
 
-    // 파일 이름에 맞는 필터 조건 적용
-    const filterCondition = getFilterCondition(sheetName);
-    const filterData = filteredData.filter(filterCondition);
+  // 파일 이름에 맞는 필터 조건 적용
+  const filterCondition = getFilterCondition(sheetName);
+  const endData = filteredData.filter(filterCondition);
 
-    // const maleScore = filterData.forEach(item => {
-    //     const sum = 0;
-    //     if(item.includes("10")) {
-    //         return sum += filterData[item];
-    //     }
-    // });
-    //
-    // console.log((maleScore));
+  // 연령대별 관광지 선호도 정렬
+  if(sheetName.includes("관광지")) {
+    endData.sort((a, b) => {
+      if(a.비율_10대 > b.비율_10대) return -1;
+      if(a.비율_10대 < b.비율_10대) return 1;
+    });
+  }
 
-    // // 데이터가 존재하지 않을 때, 예외 처리
-    // if(filterData.length === 0) {
-    //     console.log("데이터를 확인할 수 없음");
-    //     console.log("=".repeat(70)); // 구분선
-    // }
-    // else {
-    //     console.log(`파일명: ${file}`);
-    //     console.log("데이터:", filterData);
-    //     console.log("=".repeat(70)); // 구분선
-    // }
+  // 맛집 순위 정렬
+  if(sheetName.includes("맛집")) {
+    endData.sort((a, b) => {
+      if(a.순위 > b.순위) return 1;
+      if(a.순위 < b.순위) return -1;
+    });
+  }
+
+  if(sheetName.includes("쇼핑")) {
+    console.log(endData);
+  }
+
+  // 데이터가 존재하지 않을 때, 예외 처리
+  // if(endData.length === 0) {
+  //   console.log("데이터를 확인할 수 없음");
+  //   console.log("=".repeat(70)); // 구분선
+  // }
+  // else {
+  //   console.log(`파일명: ${file}`);
+  //   console.log("데이터:", endData);
+  //   console.log("=".repeat(70)); // 구분선
+  //   // 원하는 갯수의 데이터 출력
+  //   // if(sheetName.includes("관광지")) {
+  //   //   console.log(`파일명: ${file}`);
+  //   //   for(let i=0;i < endData.length; i++) {
+  //   //     console.log("데이터:", endData[i].관광지명, endData[i].주소, endData[i].비율_10대);
+  //   //   }
+  //   //   console.log("=".repeat(70)); // 구분선
+  //   // }
+  //   // else {
+  //   //   console.log(`파일명: ${file}`);
+  //   //   console.log("데이터:", endData);
+  //   //   console.log("=".repeat(70)); // 구분선
+  //   // }
+  // }
 });
